@@ -1,0 +1,284 @@
+<title>Door Noodle Kick Target</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a workshop build sheet. 3D viewer up top, then parts, print, install, adjust. */
+:root {
+  --bg: #eef1f4;
+  --panel: #ffffff;
+  --ink: #1b2430;
+  --muted: #5a6676;
+  --line: #d3d9e1;
+  --accent: #d9661f;      /* hanger orange */
+  --blue: #2f7bd6;        /* mount blue */
+  --viewer: #dfe5ec;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12171e; --panel: #1a212b; --ink: #e6ebf1; --muted: #9aa6b5; --line: #2c3643;
+  --accent: #f08a45; --blue: #5aa0f0; --viewer: #1f2833; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12171e; --panel: #1a212b; --ink: #e6ebf1; --muted: #9aa6b5; --line: #2c3643;
+  --accent: #f08a45; --blue: #5aa0f0; --viewer: #1f2833; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font: 16px/1.55 var(--f-body); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 64px; display: grid; gap: 36px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; letter-spacing: .01em; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.05; }
+h2 { font-size: 1.7rem; text-transform: uppercase; letter-spacing: .04em; }
+h3 { font-size: 1.25rem; }
+p { margin: 0; max-width: 68ch; }
+.lede { color: var(--muted); font-size: 1.1rem; margin-top: 8px; }
+.eyebrow { font: 600 .78rem var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.wrap, section { grid-template-columns: minmax(0, 1fr); }
+section { display: grid; gap: 14px; }
+code, .mono { font-family: var(--f-mono); font-size: .88em; }
+
+/* viewer */
+.viewer { position: relative; background: var(--viewer); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; aspect-ratio: 16 / 10; max-width: 100%; }
+.viewer canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.views { position: absolute; left: 10px; top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.views button { font: 600 .8rem var(--f-mono); padding: 6px 10px; border-radius: 4px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--ink); cursor: pointer; }
+.views button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+.views button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.legend { position: absolute; right: 10px; bottom: 10px; display: flex; flex-wrap: wrap; gap: 10px; font: .75rem var(--f-mono);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.status { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font: .9rem var(--f-mono); pointer-events: none; }
+.status[hidden] { display: none; }
+.hint { font: .78rem var(--f-mono); color: var(--muted); }
+
+/* concept */
+.concept { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.concept div { display: grid; gap: 6px; padding-top: 10px; border-top: 3px solid var(--line); min-width: 0; }
+.concept div.o { border-top-color: var(--accent); }
+.concept div.b { border-top-color: var(--blue); }
+
+/* tables */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: .95rem; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 .74rem var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* steps */
+ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 14px; }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 38px 1fr; gap: 12px; align-items: start; }
+ol.steps li::before { content: counter(s); font: 700 1.3rem var(--f-display); color: var(--accent); border: 2px solid var(--accent);
+  border-radius: 50%; width: 34px; height: 34px; display: grid; place-items: center; }
+ol.steps li > div { min-width: 0; display: grid; gap: 4px; }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.two > div { min-width: 0; display: grid; gap: 10px; align-content: start; }
+ul.plain { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+.note { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--ink); }
+.measure { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.measure div { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; display: grid; gap: 4px; min-width: 0; }
+.measure b { font: 600 .74rem var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.measure span.v { font: 600 1.15rem var(--f-mono); }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Build sheet · 3D printed · no tools, no screws</div>
+    <h1>Door Noodle Kick Target</h1>
+    <p class="lede">A pool noodle sticks straight out of a closed interior door at any height you want. Six printed parts plus two bungee cords: hangers clip over the top and under the bottom of the door, the cords run down the face, and the noodle mount grips the cords wherever you set it.</p>
+  </header>
+
+  <section aria-label="3D model">
+    <div class="viewer" id="viewer">
+      <div class="views" role="group" aria-label="Camera views">
+        <button id="v-overview" data-view="overview" aria-pressed="true">Overview</button>
+        <button id="v-mount" data-view="mount" aria-pressed="false">Mount</button>
+        <button id="v-top" data-view="top" aria-pressed="false">Door top</button>
+        <button id="v-print" data-view="print" aria-pressed="false">Print bed</button>
+      </div>
+      <div class="legend"><span><i style="background:#e8803a"></i>Hanger ×4</span><span><i style="background:#3a8de8"></i>Mount</span><span><i style="background:#222"></i>Bungee</span><span><i style="background:#50c85a"></i>Noodle</span></div>
+      <div class="status" id="status">Loading model…</div>
+    </div>
+    <div class="hint">Drag to orbit · scroll or pinch to zoom · right-drag to pan. Door shown is 30 × 80 in, 1-3/8 in thick.</div>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="concept">
+      <div class="o"><h3>Hangers (×4)</h3><p>A thin C-clip hooks over the top edge of the door, and the same part flipped hooks under the bottom edge. Each has a thin 10 mm loop at one edge for the bungee hook. It stands off the door face so the hook never touches paint.</p></div>
+      <div><h3>Bungees (×2 runs)</h3><p>Each run goes from a top hanger, straight down the door face, to the bottom hanger below it. Two runs 144 mm apart. Chain two cords hook-to-hook if one isn't long enough; the joint can sit anywhere.</p></div>
+      <div class="b"><h3>Noodle mount</h3><p>A backplate with a deep socket for the noodle, a spigot that goes into the noodle's hollow core, and a cross pin. On each side, three capped pegs grip a cord as it weaves left-right-left, so the whole mount holds wherever you put it.</p></div>
+    </div>
+    <p class="note">Mount the target on the side the door <b>swings toward</b>. Kicks then push the door into its stop instead of trying to pull it open, and the thin back leg of each hanger sits on the stop side where the gap is tightest.</p>
+  </section>
+
+  <section>
+    <h2>Measure first</h2>
+    <p>Three numbers decide the fit. Change them at the top of <code>build.py</code> and rerun it if yours differ.</p>
+    <div class="measure">
+      <div><b>Door thickness</b><span class="v">34.9 mm</span><span class="hint">1-3/8 in is standard interior. Solid doors are often 1-3/4 in (44.5). <code>DOOR_T</code></span></div>
+      <div><b>Noodle diameter</b><span class="v">64 mm</span><span class="hint">Most are 2.5 in (63.5). Jumbo ones run 3 to 4 in. <code>NOODLE_D</code></span></div>
+      <div><b>Gap above the door</b><span class="v">≥ 2.5 mm</span><span class="hint">Slide a credit card stack in. Strap is 2.4 mm. <code>H_STRAP</code></span></div>
+      <div><b>Gap under the door</b><span class="v">≥ 6 mm</span><span class="hint">Usually 10 to 19 mm. The bottom hangers ride here.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Parts</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>File</th><th>Qty</th><th>Size (mm)</th><th>Print orientation</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">hanger_x4.stl</td><td class="num">4</td><td class="num">65 × 87 × 30</td><td>Lying on the C-profile, as exported</td><td>Layers follow the curve of the C, so the bend can't split along a layer. The hook loop sits on the bed. 2 go on top, 2 flipped go on the bottom.</td></tr>
+        <tr><td class="mono">noodle_mount.stl</td><td class="num">1</td><td class="num">184 × 140 × 96</td><td>Backplate on the bed, socket up</td><td>No supports. Pin hole has a teardrop roof. Peg caps have 45° undersides.</td></tr>
+        <tr><td class="mono">cross_pin.stl</td><td class="num">1</td><td class="num">95 × 18 × 12</td><td>On its flat side</td><td>Pointed tip pierces the foam. Push through socket + noodle.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>Print settings</h2>
+      <ul class="plain">
+        <li><b>Material:</b> PETG preferred. It flexes instead of snapping, which matters for the hangers. PLA works for the mount.</li>
+        <li><b>Hangers:</b> 100% infill (they're small), 0.2 mm layers. These carry all the cord tension.</li>
+        <li><b>Mount:</b> 4 walls, 25 to 30% gyroid infill, 5 top and bottom layers.</li>
+        <li><b>Pin:</b> 100% infill.</li>
+        <li><b>Supports:</b> none needed for any part.</li>
+        <li>Everything fits on one 256 × 256 bed (see the Print bed view).</li>
+      </ul>
+    </div>
+    <div>
+      <h2>You also need</h2>
+      <ul class="plain">
+        <li>The pool noodle. Cut it to about 0.8 to 1 m; full length droops.</li>
+        <li>Bungee cords: enough to span the door twice, top to bottom (about 2 m per side). Two 1 m cords chained per side is typical.</li>
+        <li>Optional: felt pads or painter's tape on the back of the mount and inside the hangers to protect the finish.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Install</h2>
+    <ol class="steps">
+      <li><div><h3>Hang the top hangers</h3><p>Open the door. Hook two hangers over the top edge, about 144 mm apart (centered on where you want the noodle). The thick leg with the eye goes on the target side, the thin leg on the stop side.</p></div></li>
+      <li><div><h3>Place the bottom hangers</h3><p>Flip the other two upside down and slide them under the bottom edge, directly below the top ones. Eyes on the target side again.</p></div></li>
+      <li><div><h3>Run the cords</h3><p>Hold the hook with its curve flat against the door and slip the tip sideways through the loop, from the open side. Run the cord down the face and hook the bottom eye, chaining cords as needed. Aim for a firm stretch, about 15 to 25% longer than relaxed. Repeat on the other side.</p></div></li>
+      <li><div><h3>Weave the mount onto the cords</h3><p>Hold the mount at the height you want. On each side, press the cord between the pegs so it passes <b>left of the top peg, right of the middle peg, left of the bottom peg</b>. The cord tucks under the caps. For more grip, take a full wrap around the middle peg.</p></div></li>
+      <li><div><h3>Seat the noodle</h3><p>Twist the noodle into the socket until it bottoms out over the spigot. Push the cross pin through the side holes and through the foam.</p></div></li>
+      <li><div><h3>Close the door and test</h3><p>Close and latch the door. Kick lightly first and check that the hangers stay seated and the mount holds its height.</p></div></li>
+    </ol>
+  </section>
+
+  <section class="two">
+    <div>
+      <h2>Changing height</h2>
+      <p>Lift the cord off the pegs on both sides, slide the mount up or down, and weave it back on. No hardware, under 30 seconds. Useful range is about 20 cm off the floor to 1.85 m.</p>
+      <p>If the mount creeps down under hard kicks, add the extra wrap around the middle peg on both sides, or tighten the cords. Grip rises with cord tension.</p>
+    </div>
+    <div>
+      <h2>Watch out for</h2>
+      <ul class="plain">
+        <li><b>Door won't latch:</b> the stop molding is pinching the thin back leg. Reduce <code>H_BACK_T</code> to 2.0 and reprint, or move the hangers to where the gap is looser.</li>
+        <li><b>Hollow-core doors</b> are fine since the load goes into the door edges, not the skin.</li>
+        <li><b>Solid noodle (no core):</b> set <code>NOODLE_CORE = False</code> and rely on the socket ribs and pin.</li>
+        <li>Kick the noodle, not the mount. The socket is 9 cm deep to keep feet away from the hard parts.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Regenerating the files</h2>
+    <p>All geometry comes from <code>build.py</code>. Edit the parameter block, then run <code>pip install manifold3d trimesh numpy</code> and <code>python build.py</code>. It rewrites the STLs in <code>stl/</code> and the two preview models.</p>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="assembly.glb.js"></script>
+<script src="print_layout.glb.js"></script>
+<script>
+(function () {
+  const host = document.getElementById('viewer');
+  const status = document.getElementById('status');
+  if (!window.THREE || !THREE.GLTFLoader) { status.textContent = '3D viewer could not load.'; return; }
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  host.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 1, 5, 20000);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f99, 0.75));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+  sun.position.set(1500, 3000, -2500);
+  scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.3);
+  fill.position.set(-2000, 1000, 1500);
+  scene.add(fill);
+
+  // models are Z-up millimetres; three.js is Y-up
+  const install = new THREE.Group(), plate = new THREE.Group();
+  install.rotation.x = plate.rotation.x = -Math.PI / 2;
+  plate.position.set(3000, 0, 0);
+  scene.add(install, plate);
+
+  // world = (x, z_up, -y_up); target side of the door is -z here
+  const views = {
+    overview: { pos: [2500, 1650, -3300], tgt: [381, 1030, -300] },
+    mount:    { pos: [720, 1260, -470],   tgt: [381, 1050, -70] },
+    top:      { pos: [640, 2160, -330],   tgt: [381, 1990, 0] },
+    print:    { pos: [3260, 330, 300],    tgt: [3000, 20, 0] }
+  };
+  let tween = null;
+  function go(name, instant) {
+    const v = views[name];
+    const to = { p: new THREE.Vector3(...v.pos), t: new THREE.Vector3(...v.tgt) };
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (instant || reduce) { camera.position.copy(to.p); controls.target.copy(to.t); tween = null; }
+    else tween = { from: { p: camera.position.clone(), t: controls.target.clone() }, to, t0: performance.now() };
+    document.querySelectorAll('.views button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === name));
+  }
+  document.querySelectorAll('.views button').forEach(b => b.addEventListener('click', () => go(b.dataset.view)));
+
+  const loader = new THREE.GLTFLoader();
+  let pending = 2;
+  function done() { if (--pending === 0) status.hidden = true; }
+  function load(name, group) {
+    const b64 = (window.MODELS || {})[name];
+    if (!b64) { status.textContent = 'Could not load the ' + name + ' model.'; return; }
+    const bin = atob(b64), buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    loader.parse(buf.buffer, '', g => {
+      g.scene.traverse(o => { if (o.isMesh) { o.material.side = THREE.DoubleSide; } });
+      group.add(g.scene); done();
+    }, () => { status.textContent = 'Could not read the ' + name + ' model.'; });
+  }
+  load('assembly', install);
+  load('print_layout', plate);
+
+  function resize() {
+    const w = host.clientWidth, h = host.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(host);
+  resize(); go('overview', true);
+
+  (function loop(now) {
+    if (tween) {
+      const k = Math.min(1, (now - tween.t0) / 700), e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      camera.position.lerpVectors(tween.from.p, tween.to.p, e);
+      controls.target.lerpVectors(tween.from.t, tween.to.t, e);
+      if (k === 1) tween = null;
+    }
+    controls.update(); renderer.render(scene, camera);
+    requestAnimationFrame(loop);
+  })(performance.now());
+})();
+</script>
